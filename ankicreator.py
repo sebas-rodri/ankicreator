@@ -1,7 +1,7 @@
 import openai
 import os
 from nicegui import ui
-import json
+import tiktoken
 import genanki
 import random
 import functions 
@@ -23,14 +23,16 @@ front_back_prompt.append(functions.user_content(call_stack))
 
 print(front_back_prompt)
 
-'''
+
 response = openai.ChatCompletion.create(
     model=MODEL,
     messages=front_back_prompt,
     temperature=0,
 )
-'''
 
-#flashcard_list = response["choices"][0]["message"]["content"]
-functions.fill_deck(anki_test,anki_model,anki_deck)
+print(response["choices"][0]["message"]["content"])
+flashcard_list = eval(response["choices"][0]["message"]["content"])
+
+
+functions.fill_deck(flashcard_list,anki_model,anki_deck)
 genanki.Package(anki_deck).write_to_file('output.apkg')
