@@ -9,6 +9,7 @@ from prompts import prompts
 from test import call_stack, anki_test
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+
 class Settings:
     def __init__(self):
         self.MODEL = "gpt-3.5-turbo"
@@ -17,6 +18,7 @@ class Settings:
         self.anki_deck = functions.initialize_deck(self.DECK_ID,"Ankicreator")
         self.anki_model = functions.initialize_model_frontback(self.MODEL_ID)
         openai.api_key = os.getenv('OPEN_API_KEY')
+        self.not_finished = True
     
     def change_model(self, value):
         self.MODEL = value
@@ -38,12 +40,19 @@ class Prompt:
     
     def set_user_input(self, value: str):
         self.user_input = value
+        print(self.user_input)
+    
+        
 
 def create_flashcards_button(self: Prompt):
+    if prompt.user_input == None or prompt.user_input.strip() == "":
+        ui.notify("You need to input text or PDF")
+        return
     self.make_full_prompt()
     print(self.full_prompt)
     create_flashcards(self)
     genanki.Package(settings.anki_deck).write_to_file('output.apkg')
+    settings.not_finished = False
     ui.notify("Succes, Flashcards created")
 
 def create_flashcards(self: Prompt):
@@ -54,6 +63,7 @@ def create_flashcards(self: Prompt):
     )
     flashcard_list = eval(response["choices"][0]["message"]["content"])
     functions.fill_deck(flashcard_list,settings.anki_model,settings.anki_deck)
+
 
 def num_tokens_from_string(string: str) -> int:
     """Returns the number of tokens in a text string."""
@@ -93,13 +103,17 @@ prompt_options = {"front_back_prompt": "Basic Front Back Flashcard"}
 
 
 @ui.page('/',dark=True)
-async def button():
-    ui.select(options=model_names,value="gpt-3.5-turbo",with_input=True,on_change=lambda e: settings.change_model(e.value)).classes('w-40')
-    ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: prompt.set_basic_prompt(e.value))
-    ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: prompt.set_user_input(e.value))
+async def page_layout():
+    with ui.row().classes('w-full justify-center'):
+        ui.select(options=model_names,value="gpt-3.5-turbo",with_input=True,on_change=lambda e: settings.change_model(e.value)).classes('w-64 pt-6')
+    with ui.row().classes('w-full justify-center'):
+        ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: prompt.set_basic_prompt(e.value)).classes('w-64')
+    with ui.row().classes('w-full justify-center'):
+        textarea = ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: prompt.set_user_input(e.value)).classes('w-96 h-96')
     flashcard_button = ui.button("Create Flashcards")
-    await flashcard_button.clicked()
-    create_flashcards_button(prompt)
+    while(settings.not_finished):
+        await flashcard_button.clicked()
+        create_flashcards_button(prompt)
 
 
 
