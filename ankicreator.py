@@ -39,7 +39,12 @@ class Prompt:
     def set_user_input(self, value: str):
         self.user_input = value
 
-
+def create_flashcards_button(self: Prompt):
+    self.make_full_prompt()
+    print(self.full_prompt)
+    create_flashcards(self)
+    genanki.Package(settings.anki_deck).write_to_file('output.apkg')
+    ui.notify("Succes, Flashcards created")
 
 def create_flashcards(self: Prompt):
     response = openai.ChatCompletion.create(
@@ -55,12 +60,20 @@ prompt = Prompt()
 
 model_names = {"gpt-3.5-turbo":"gpt3.5 (max 4,097 tokens)","gpt-3.5-turbo-16k":"gpt3.5 (max 16,385 tokens)","gpt-4": "gpt-4 (max 8,192 tokens)","gpt-4-32k":"gpt-4 (max 32,768 tokens)"}
 prompt_options = {"front_back_prompt": "Basic Front Back Flashcard"}
-ui.select(options=model_names,value="gpt-3.5-turbo",with_input=True,on_change=lambda e: settings.change_model(e.value)).classes('w-40')
-ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: prompt.set_basic_prompt(e.value))
-ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: prompt.set_user_input(e.value))
 
 
 
-#genanki.Package(settings.anki_deck).write_to_file('output.apkg')
+@ui.page('/',dark=True)
+async def button():
+    ui.select(options=model_names,value="gpt-3.5-turbo",with_input=True,on_change=lambda e: settings.change_model(e.value)).classes('w-40')
+    ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: prompt.set_basic_prompt(e.value))
+    ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: prompt.set_user_input(e.value))
+    flashcard_button = ui.button("Create Flashcards")
+    await flashcard_button.clicked()
+    create_flashcards_button(prompt)
+
+
+
+
 
 ui.run(favicon='🚀',title="Anki Flashcard Creator",host="127.0.0.1",port=8081)
