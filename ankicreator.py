@@ -67,31 +67,31 @@ def create_flashcards(self: Prompt):
 
 def num_tokens_from_string(string: str) -> int:
     """Returns the number of tokens in a text string."""
-    encoding = tiktoken.get_encoding_for_model(settings.MODEL)
+    encoding = tiktoken.encoding_for_model(settings.MODEL)
     num_tokens = len(encoding.encode(string))
     return num_tokens
 
 def calculate_price():
-    basic_prompt_tokenlen = num_tokens_from_string(prompt.basic_prompt)
+    basic_prompt_tokenlen = num_tokens_from_string(str(prompt.basic_prompt))
     if prompt.user_input == None:
         if settings.MODEL == "gpt-3.5-turbo":
-            return 0.0015 * basic_prompt_tokenlen / 1000
+            return str(0.0015 * basic_prompt_tokenlen / 1000)
         elif settings.MODEL == "gpt-3.5-turbo-16k":
-            return 0.003 * basic_prompt_tokenlen /1000
+            return str(0.003 * basic_prompt_tokenlen /1000)
         elif settings == "gpt-4":
-            return 0.003 * basic_prompt_tokenlen / 1000
+            return str(0.003 * basic_prompt_tokenlen / 1000)
         elif settings.MODEL == "gpt-4-32k":
-            return 0.006 * basic_prompt_tokenlen / 1000
+            return str(0.006 * basic_prompt_tokenlen / 1000)
     elif prompt.user_input:
-        user_input_tokenlen = num_tokens_from_string(prompt.user_input)
+        user_input_tokenlen = num_tokens_from_string(str(prompt.user_input))
         if settings.MODEL == "gpt-3.5-turbo":
-            return 0.0015 * basic_prompt_tokenlen / 1000 + 0.002 * user_input_tokenlen
+            return str(0.0015 * basic_prompt_tokenlen / 1000 + 0.002 * user_input_tokenlen)
         elif settings.MODEL == "gpt-3.5-turbo-16k":
-            return 0.003 * basic_prompt_tokenlen /1000 + 0.004 * user_input_tokenlen
+            return str(0.003 * basic_prompt_tokenlen /1000 + 0.004 * user_input_tokenlen)
         elif settings == "gpt-4":
-            return 0.003 * basic_prompt_tokenlen / 1000 + 0.06 * user_input_tokenlen
+            return str(0.003 * basic_prompt_tokenlen / 1000 + 0.06 * user_input_tokenlen)
         elif settings.MODEL == "gpt-4-32k":
-            return 0.006 * basic_prompt_tokenlen / 1000 + 0.12 * user_input_tokenlen
+            return str(0.006 * basic_prompt_tokenlen / 1000 + 0.12 * user_input_tokenlen)
     return None
 
 settings = Settings()
@@ -104,13 +104,16 @@ prompt_options = {"front_back_prompt": "Basic Front Back Flashcard"}
 
 @ui.page('/',dark=True)
 async def page_layout():
+    
     with ui.row().classes('w-full justify-center'):
         ui.select(options=model_names,value="gpt-3.5-turbo",with_input=True,on_change=lambda e: settings.change_model(e.value)).classes('w-64 pt-6')
     with ui.row().classes('w-full justify-center'):
         ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: prompt.set_basic_prompt(e.value)).classes('w-64')
     with ui.row().classes('w-full justify-center'):
         textarea = ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: prompt.set_user_input(e.value)).classes('w-96 h-96')
-    flashcard_button = ui.button("Create Flashcards")
+    with ui.row().classes('w-full justify-center'):
+        flashcard_button = ui.button("Create Flashcards")
+    print(calculate_price())
     while(settings.not_finished):
         await flashcard_button.clicked()
         create_flashcards_button(prompt)
