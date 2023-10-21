@@ -18,14 +18,17 @@ class Settings:
         self.anki_model = functions.initialize_model_frontback(self.MODEL_ID)
         openai.api_key = os.getenv('OPEN_API_KEY')
 
+class Text_input:
+    def __init__(self):
+        self.input = None
 settings = Settings()
+text = Text_input()
 
 model_names = {"gpt-3.5-turbo":"gpt3.5 (max 4,097 tokens)","gpt-3.5-turbo-16k":"gpt3.5 (max 16,385 tokens)","gpt-4": "gpt-4 (max 8,192 tokens)","gpt-4-32k":"gpt-4 (max 32,768 tokens)"}
 ui.select(options=model_names,with_input=True,value="gpt-3.5-turbo").bind_value(settings,'MODEL')
 
+
 user_textarea_input = ui.textarea(label="Text to process: ", placeholder="input here")
-
-
 
 front_back_prompt.append(functions.user_content(call_stack))
 
