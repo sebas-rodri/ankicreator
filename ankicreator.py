@@ -48,7 +48,7 @@ class Prompt:
         self.cost = calculate_price()
     
     def update_tokenlen(self):
-        self.token_len = str(num_tokens_from_string(self.basic_prompt) +num_tokens_from_string(self.user_input))
+        self.token_len = str(num_tokens_from_string(str(self.basic_prompt)) +num_tokens_from_string(str(self.user_input)))
     
         
 
@@ -88,7 +88,7 @@ def calculate_price():
             return str(0.0015 * basic_prompt_tokenlen / 1000)
         elif settings.MODEL == "gpt-3.5-turbo-16k":
             return str(0.003 * basic_prompt_tokenlen /1000)
-        elif settings == "gpt-4":
+        elif settings.MODEL == "gpt-4":
             return str(0.003 * basic_prompt_tokenlen / 1000)
         elif settings.MODEL == "gpt-4-32k":
             return str(0.006 * basic_prompt_tokenlen / 1000)
@@ -124,9 +124,9 @@ async def page_layout():
     with ui.row().classes('w-full justify-center'):
         ui.select(options=model_names,value="gpt-3.5-turbo",with_input=True,on_change=lambda e: (settings.change_model(e.value),prompt.update_cost())).classes('w-64 pt-6')
     with ui.row().classes('w-full justify-center'):
-        ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: (prompt.set_basic_prompt(e.value),prompt.update_cost())).classes('w-64')
+        ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: (prompt.set_basic_prompt(e.value),prompt.update_cost(), prompt.update_tokenlen())).classes('w-64')
     with ui.row().classes('w-full justify-center'):
-        textarea = ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: (prompt.set_user_input(e.value),prompt.update_cost())).classes('w-8/12 h-8/12 min-h-128 large-textarea').props('clearable')
+        ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: (prompt.set_user_input(e.value),prompt.update_cost(), prompt.update_tokenlen())).classes('w-8/12 h-8/12 min-h-128 large-textarea').props('clearable')
     with ui.row().classes('w-full justify-center'):
         flashcard_button = ui.button("Create Flashcards")
     while(settings.not_finished):
