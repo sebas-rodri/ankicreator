@@ -55,6 +55,35 @@ def create_flashcards(self: Prompt):
     flashcard_list = eval(response["choices"][0]["message"]["content"])
     functions.fill_deck(flashcard_list,settings.anki_model,settings.anki_deck)
 
+def num_tokens_from_string(string: str) -> int:
+    """Returns the number of tokens in a text string."""
+    encoding = tiktoken.get_encoding_for_model(settings.MODEL)
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
+
+def calculate_price():
+    basic_prompt_tokenlen = num_tokens_from_string(prompt.basic_prompt)
+    if prompt.user_input == None:
+        if settings.MODEL == "gpt-3.5-turbo":
+            return 0.0015 * basic_prompt_tokenlen / 1000
+        elif settings.MODEL == "gpt-3.5-turbo-16k":
+            return 0.003 * basic_prompt_tokenlen /1000
+        elif settings == "gpt-4":
+            return 0.003 * basic_prompt_tokenlen / 1000
+        elif settings.MODEL == "gpt-4-32k":
+            return 0.006 * basic_prompt_tokenlen / 1000
+    elif prompt.user_input:
+        user_input_tokenlen = num_tokens_from_string(prompt.user_input)
+        if settings.MODEL == "gpt-3.5-turbo":
+            return 0.0015 * basic_prompt_tokenlen / 1000 + 0.002 * user_input_tokenlen
+        elif settings.MODEL == "gpt-3.5-turbo-16k":
+            return 0.003 * basic_prompt_tokenlen /1000 + 0.004 * user_input_tokenlen
+        elif settings == "gpt-4":
+            return 0.003 * basic_prompt_tokenlen / 1000 + 0.06 * user_input_tokenlen
+        elif settings.MODEL == "gpt-4-32k":
+            return 0.006 * basic_prompt_tokenlen / 1000 + 0.12 * user_input_tokenlen
+    return None
+
 settings = Settings()
 prompt = Prompt()
 
