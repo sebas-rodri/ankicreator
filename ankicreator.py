@@ -30,7 +30,8 @@ class Prompt:
         self.basic_prompt = prompts["front_back_prompt"]
         self.user_input = None
         self.full_prompt = None
-        self.cost = None
+        self.cost = "0.0008625"
+        self.token_len = str(num_tokens_from_string(str(prompts["front_back_prompt"])))
 
     def make_full_prompt(self):
         self.full_prompt = self.basic_prompt
@@ -45,6 +46,9 @@ class Prompt:
     
     def update_cost(self):
         self.cost = calculate_price()
+    
+    def update_tokenlen(self):
+        self.token_len = str(num_tokens_from_string(self.basic_prompt) +num_tokens_from_string(self.user_input))
     
         
 
@@ -71,6 +75,8 @@ def create_flashcards(self: Prompt):
 
 def num_tokens_from_string(string: str) -> int:
     """Returns the number of tokens in a text string."""
+    if string == None:
+        return 0
     encoding = tiktoken.encoding_for_model(settings.MODEL)
     num_tokens = len(encoding.encode(string))
     return num_tokens
@@ -109,13 +115,18 @@ prompt_options = {"front_back_prompt": "Basic Front Back Flashcard"}
 @ui.page('/',dark=True)
 async def page_layout():
     with ui.row().classes('w-full justify-center'):
-        ui.label("Price in $: ").bind_text(prompt, 'cost')
+        ui.label("Approx price: ")
+        ui.label().bind_text(prompt, 'cost')
+        ui.label("$")
+    with ui.row().classes('w-full justify-center'):
+        ui.label("Number of Tokens: ")
+        ui.label().bind_text(prompt, 'token_len')
     with ui.row().classes('w-full justify-center'):
         ui.select(options=model_names,value="gpt-3.5-turbo",with_input=True,on_change=lambda e: (settings.change_model(e.value),prompt.update_cost())).classes('w-64 pt-6')
     with ui.row().classes('w-full justify-center'):
         ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: (prompt.set_basic_prompt(e.value),prompt.update_cost())).classes('w-64')
     with ui.row().classes('w-full justify-center'):
-        textarea = ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: (prompt.set_user_input(e.value),prompt.update_cost())).classes('w-96 h-96')
+        textarea = ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: (prompt.set_user_input(e.value),prompt.update_cost())).classes('w-8/12 h-8/12 min-h-128 large-textarea').props('clearable')
     with ui.row().classes('w-full justify-center'):
         flashcard_button = ui.button("Create Flashcards")
     while(settings.not_finished):
