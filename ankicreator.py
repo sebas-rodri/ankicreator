@@ -5,7 +5,7 @@ import tiktoken
 import genanki
 import random
 import functions 
-from prompts import front_back_prompt
+from prompts import prompts
 from test import call_stack, anki_test
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -17,16 +17,29 @@ class Settings:
         self.anki_deck = functions.initialize_deck(self.DECK_ID,"Ankicreator")
         self.anki_model = functions.initialize_model_frontback(self.MODEL_ID)
         openai.api_key = os.getenv('OPEN_API_KEY')
+    
+    def change_model(self, value):
+        self.MODEL = value
+        print(self.MODEL)
+
 
 class Prompt:
     def __init__(self):
-        self.basic_prompt = front_back_prompt
+        self.basic_prompt = prompts["front_back_prompt"]
         self.user_input = None
         self.full_prompt = None
 
-def make_full_prompt(self: Prompt):
-    self.full_prompt = self.basic_prompt
-    self.full_prompt.append(functions.user_content(self.user_input))
+    def make_full_prompt(self):
+        self.full_prompt = self.basic_prompt
+        self.full_prompt.append(functions.user_content(self.user_input))
+    
+    def set_basic_prompt(self, value: str):
+        self.basic_prompt = prompts[value]
+    
+    def set_user_input(self, value: str):
+        self.user_input = value
+
+
 
 def create_flashcards(self: Prompt):
     response = openai.ChatCompletion.create(
@@ -41,12 +54,13 @@ settings = Settings()
 prompt = Prompt()
 
 model_names = {"gpt-3.5-turbo":"gpt3.5 (max 4,097 tokens)","gpt-3.5-turbo-16k":"gpt3.5 (max 16,385 tokens)","gpt-4": "gpt-4 (max 8,192 tokens)","gpt-4-32k":"gpt-4 (max 32,768 tokens)"}
-prompt_options = {front_back_prompt: "Basic Front Back Flashcard"}
-ui.select(options=model_names,with_input=True,value="gpt-3.5-turbo").bind_value(settings,'MODEL')
-ui.select(options=prompt_options,with_input=True,value=front_back_prompt).bind_value(prompt, 'basic_prompt')
-ui.textarea(label="Text to process: ", placeholder="input here").bind_value(prompt,'user_input')
+prompt_options = {"front_back_prompt": "Basic Front Back Flashcard"}
+ui.select(options=model_names,value="gpt-3.5-turbo",with_input=True,on_change=lambda e: settings.change_model(e.value)).classes('w-40')
+ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: prompt.set_basic_prompt(e.value))
+ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: prompt.set_user_input(e.value))
 
 
-genanki.Package(settings.anki_deck).write_to_file('output.apkg')
 
-ui.run(favicon='🚀',title="Anki Flashcard Creator")
+#genanki.Package(settings.anki_deck).write_to_file('output.apkg')
+
+ui.run(favicon='🚀',title="Anki Flashcard Creator",host="127.0.0.1",port=8081)
