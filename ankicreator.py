@@ -30,6 +30,7 @@ class Prompt:
         self.basic_prompt = prompts["front_back_prompt"]
         self.user_input = None
         self.full_prompt = None
+        self.cost = None
 
     def make_full_prompt(self):
         self.full_prompt = self.basic_prompt
@@ -41,6 +42,9 @@ class Prompt:
     def set_user_input(self, value: str):
         self.user_input = value
         print(self.user_input)
+    
+    def update_cost(self):
+        self.cost = calculate_price()
     
         
 
@@ -85,13 +89,13 @@ def calculate_price():
     elif prompt.user_input:
         user_input_tokenlen = num_tokens_from_string(str(prompt.user_input))
         if settings.MODEL == "gpt-3.5-turbo":
-            return str(0.0015 * basic_prompt_tokenlen / 1000 + 0.002 * user_input_tokenlen)
+            return str(0.0015 * basic_prompt_tokenlen / 1000 + 0.002 * user_input_tokenlen /1000)
         elif settings.MODEL == "gpt-3.5-turbo-16k":
-            return str(0.003 * basic_prompt_tokenlen /1000 + 0.004 * user_input_tokenlen)
-        elif settings == "gpt-4":
-            return str(0.003 * basic_prompt_tokenlen / 1000 + 0.06 * user_input_tokenlen)
+            return str(0.003 * basic_prompt_tokenlen /1000 + 0.004 * user_input_tokenlen /1000)
+        elif settings.MODEL == "gpt-4":
+            return str(0.003 * basic_prompt_tokenlen / 1000 + 0.06 * user_input_tokenlen /1000)
         elif settings.MODEL == "gpt-4-32k":
-            return str(0.006 * basic_prompt_tokenlen / 1000 + 0.12 * user_input_tokenlen)
+            return str(0.006 * basic_prompt_tokenlen / 1000 + 0.12 * user_input_tokenlen /1000)
     return None
 
 settings = Settings()
@@ -104,16 +108,16 @@ prompt_options = {"front_back_prompt": "Basic Front Back Flashcard"}
 
 @ui.page('/',dark=True)
 async def page_layout():
-    
     with ui.row().classes('w-full justify-center'):
-        ui.select(options=model_names,value="gpt-3.5-turbo",with_input=True,on_change=lambda e: settings.change_model(e.value)).classes('w-64 pt-6')
+        ui.label("Price in $: ").bind_text(prompt, 'cost')
     with ui.row().classes('w-full justify-center'):
-        ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: prompt.set_basic_prompt(e.value)).classes('w-64')
+        ui.select(options=model_names,value="gpt-3.5-turbo",with_input=True,on_change=lambda e: (settings.change_model(e.value),prompt.update_cost())).classes('w-64 pt-6')
     with ui.row().classes('w-full justify-center'):
-        textarea = ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: prompt.set_user_input(e.value)).classes('w-96 h-96')
+        ui.select(options=prompt_options,with_input=True,value="front_back_prompt",on_change=lambda e: (prompt.set_basic_prompt(e.value),prompt.update_cost())).classes('w-64')
+    with ui.row().classes('w-full justify-center'):
+        textarea = ui.textarea(label="Text to process: ", placeholder="input here",on_change=lambda e: (prompt.set_user_input(e.value),prompt.update_cost())).classes('w-96 h-96')
     with ui.row().classes('w-full justify-center'):
         flashcard_button = ui.button("Create Flashcards")
-    print(calculate_price())
     while(settings.not_finished):
         await flashcard_button.clicked()
         create_flashcards_button(prompt)
