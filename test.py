@@ -9,4 +9,9 @@ There is usually exactly one call stack associated with a running program (or mo
 
 In high-level programming languages, the specifics of the call stack are usually hidden from the programmer. They are given access only to a set of functions, and not the memory on the stack itself. This is an example of abstraction. Most assembly languages, on the other hand, require programmers to be involved with manipulating the stack. The actual details of the stack in a programming language depend upon the compiler, operating system, and the available instruction set.'''
 
-anki_test =[['Question1','Answer1'],['Question2','Answer2']]
+anki_test =[['What is a call stack in computer science?',
+ 'In computer science, a call stack is a stack data structure that stores information about the active subroutines of a computer program. It is used to keep track of the point to which each active subroutine should return control when it finishes executing.'],
+ ['What is the purpose of a call stack in computer programming?',
+ 'The main purpose of a call stack in computer programming is to keep track of the point to which each active subroutine should return control when it finishes executing. It allows for nested subroutine calls and ensures that control is handed back to the point of call after each subroutine completes execution.']
+ ,['How is a call stack organized and used in computer programming?',
+ 'A call stack is organized as a stack data structure, where the caller pushes the return address onto the stack and the called subroutine pulls or pops the return address off the call stack to transfer control back to that address. If a called subroutine calls another subroutine, it pushes another return address onto the call stack. The call stack is used to manage the flow of execution and ensure proper return control in a program.']]
